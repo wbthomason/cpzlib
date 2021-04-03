@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://github.com/orlp/pdqsort.git
+revision = head
+patch_directory = pdqsort

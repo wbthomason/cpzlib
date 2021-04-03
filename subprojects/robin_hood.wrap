@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://github.com/martinus/robin-hood-hashing.git
+revision = head
+patch_directory = robin_hood
