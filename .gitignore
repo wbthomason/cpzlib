@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Cache and dependencies
+.cache
+subprojects/*
+!subprojects/*.wrap
+!subprojects/packagefiles
