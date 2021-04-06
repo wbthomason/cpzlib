@@ -4,33 +4,22 @@
 
 #include <Eigen/Core>
 #include <functional>
+#include <numeric>
 #include <type_traits>
 
 namespace cpz {
 namespace {
-  // Adapted from:
-  // https://wjngkoh.wordpress.com/2015/03/04/c-hash-function-for-eigen-matrix-and-vector/
-  template <typename M> std::size_t matrix_hash(const M& matrix) {
-    std::size_t result = 0;
-    for (auto i = 0; i < matrix.size(); ++i) {
-      result ^= std::hash<typename M::Scalar>()(*matrix.data() + i) + 0x9e3779b9 + (result << 6) +
-                (result >> 2);
-    }
-
-    return result;
-  }
-
   template <typename Derived> inline bool is_regular(const Eigen::MatrixBase<Derived>& exponents) {
-    robin_hood::unordered_set<std::size_t> column_hashes;
-    column_hashes.reserve(exponents.cols());
+    auto next_col       = 1;
+    const auto num_cols = exponents.cols();
     for (auto& col : exponents.colwise()) {
       if (col.isZero()) {
         return false;
       }
 
-      if (!column_hashes.insert(matrix_hash(col)).second) {
+      if (next_col < num_cols && col == exponents.col(next_col)) {
         return false;
-      };
+      }
     }
 
     return true;
@@ -39,7 +28,23 @@ namespace {
   template <typename D1, typename D2>
   void regularize(Eigen::MatrixBase<D1>& exponents, Eigen::MatrixBase<D2>& generators) {}
   template <typename D1, typename D2>
-  inline void ensure_regular(Eigen::MatrixBase<D1>& exponents, Eigen::MatrixBase<D2>& generators) {
+  void ensure_regular(Eigen::MatrixBase<D1>& exponents, Eigen::MatrixBase<D2>& generators) {
+    // First, sort the exponents and generators according to the exponents
+    const int num_cols = exponents.cols();
+    std::vector<int> permutation;
+    permutation.reserve(exponents.cols());
+    for (int i = 0; i < num_cols; ++i) {
+      permutation.push_back(i);
+    }
+
+    pdqsort(permutation.begin(),
+            permutation.end(),
+            [&exponents](const auto& i, const auto& j) -> bool {
+              return exponents.col(i) < exponents.col(j);
+            });
+
+    // TODO: Apply the permutation in place if possible
+
     if (!is_regular(exponents)) {
       regularize(exponents, generators);
     }
