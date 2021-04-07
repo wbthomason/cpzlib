@@ -9,7 +9,7 @@
 
 namespace cpz {
 namespace {
-  template <typename Derived> inline bool is_regular(const Eigen::MatrixBase<Derived>& exponents) {
+  template <typename Derived> bool is_regular(const Eigen::MatrixBase<Derived>& exponents) {
     auto next_col       = 1;
     const auto num_cols = exponents.cols();
     for (auto& col : exponents.colwise()) {
@@ -25,26 +25,48 @@ namespace {
     return true;
   }
 
+  template <typename Derived>
+  void permute_cols(Eigen::MatrixBase<Derived>& mat,
+                    const std::vector<int>& permutation,
+                    const std::vector<int>& inverse_permutation) {
+    const auto num_cols  = mat.cols();
+    auto placeholder_col = mat.col(0);
+    int idx              = 0;
+    int last_unswapped   = 0;
+    while (last_unswapped < num_cols) {
+      const auto permutation_idx = permutation[idx];
+      if (permutation_idx != idx) {
+        placeholder_col = mat.col(idx);
+        mat.col(idx)    = mat.col(permutation_idx);
+      } else {
+        ++last_unswapped;
+      }
+    }
+  }
+
   template <typename D1, typename D2>
   void regularize(Eigen::MatrixBase<D1>& exponents, Eigen::MatrixBase<D2>& generators) {}
   template <typename D1, typename D2>
   void ensure_regular(Eigen::MatrixBase<D1>& exponents, Eigen::MatrixBase<D2>& generators) {
     // First, sort the exponents and generators according to the exponents
-    const int num_cols = exponents.cols();
     std::vector<int> permutation;
-    permutation.reserve(exponents.cols());
-    for (int i = 0; i < num_cols; ++i) {
-      permutation.push_back(i);
-    }
-
+    const auto num_cols = exponents.cols();
+    permutation.reserve(num_cols);
+    std::iota(permutation.begin(), permutation.end() + num_cols, 0);
     pdqsort(permutation.begin(),
             permutation.end(),
             [&exponents](const auto& i, const auto& j) -> bool {
               return exponents.col(i) < exponents.col(j);
             });
 
-    // TODO: Apply the permutation in place if possible
 
+    std::vector<int> inverse_permutation(num_cols);
+    for (int i = 0; i < num_cols; ++i) {
+      inverse_permutation[permutation[i]] = i;
+    }
+
+    permute_cols(exponents, permutation, inverse_permutation);
+    permute_cols(generators, permutation, inverse_permutation);
     if (!is_regular(exponents)) {
       regularize(exponents, generators);
     }
