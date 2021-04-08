@@ -10,14 +10,14 @@
 namespace cpz {
 namespace {
   template <typename Derived> bool is_regular(const Eigen::MatrixBase<Derived>& exponents) {
-    auto next_col       = 1;
-    const auto num_cols = exponents.cols();
-    for (auto& col : exponents.colwise()) {
+    const unsigned int num_cols = exponents.cols();
+    for (unsigned int i = 0; i < num_cols - 1; ++i) {
+      const auto& col = exponents.col(i);
       if (col.isZero()) {
         return false;
       }
 
-      if (next_col < num_cols && col == exponents.col(next_col)) {
+      if (col == exponents.col(i + 1)) {
         return false;
       }
     }
