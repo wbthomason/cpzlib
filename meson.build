@@ -1,6 +1,7 @@
 project('cpzlib', 'cpp',
   version : '0.1',
-  default_options : ['warning_level=3', 'cpp_std=c++17'])
+  default_options : ['warning_level=3', 'cpp_std=c++20', 'buildtype=release', 'optimization=3',
+  'debug=false'])
 
 # Dependencies
 eigen = dependency('eigen3', fallback: ['eigen', 'eigen3'])
@@ -11,6 +12,12 @@ dbg = dependency('dbg', fallback: ['dbg', 'dbg_dep'])
 # Some hacks (per https://github.com/mesonbuild/meson/issues/7943) to handle CMake dependencies
 # in the lazy way
 cmake = import('cmake')
+
+fastor = dependency('fastor', required: false)
+if not fastor.found()
+  fastor_cmake = cmake.subproject('fastor')
+  fastor = fastor_cmake.dependency('Fastor')
+endif
 
 celero = dependency('celero', required: false)
 if not celero.found()
@@ -27,8 +34,13 @@ endif
 # Test executable
 test_exe = executable('cpzlib_test', 'test/cpzlib_test.cc',
   include_directories: include_directories('include'),
-  dependencies: [eigen, robin_hood, pdqsort])
+  dependencies: [eigen, robin_hood, pdqsort], cpp_args: '-march=native')
 test('cpzlib', test_exe)
+
+# Benchmark executable
+benchmark_exe = executable('cpzlib_benchmarks', 'test/cpzlib_benchmarks.cc', 
+  include_directories: include_directories('include'),
+  dependencies: [eigen, robin_hood, pdqsort, celero], cpp_args: '-march=native')
 
 # Make this library usable as a Meson subproject.
 cpzlib_dep = declare_dependency(
