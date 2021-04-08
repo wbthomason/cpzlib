@@ -23,24 +23,8 @@ namespace {
   }
 
   template <typename Derived>
-  void swap_columns(Eigen::MatrixBase<Derived>& mat,
-                    const int a,
-                    const int b,
-                    const unsigned int rows) {
-    auto col_a = mat.col(a).data();
-    auto col_b = mat.col(b).data();
-    typename Eigen::MatrixBase<Derived>::Scalar temp;
-    for (unsigned int i = 0; i < rows; ++i) {
-      temp     = col_a[i];
-      col_a[i] = col_b[i];
-      col_b[i] = temp;
-    }
-  }
-
-  template <typename Derived>
   void permute_cols(Eigen::MatrixBase<Derived>& mat, std::vector<int>& permutation) {
     const unsigned int num_cols  = mat.cols();
-    const unsigned int num_rows  = mat.rows();
     unsigned int idx             = 0;
     unsigned int swap_start      = -1;
     unsigned int count           = 0;
@@ -57,7 +41,7 @@ namespace {
       permutation_idx = permutation[swap_start];
       ++count;
       while (permutation_idx != swap_start) {
-        swap_columns(mat, idx, permutation_idx, num_rows);
+        mat.col(idx).swap(mat.col(permutation_idx));
         permutation[idx] = -1;
         idx              = permutation_idx;
         permutation_idx  = permutation[permutation_idx];
