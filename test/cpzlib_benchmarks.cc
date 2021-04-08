@@ -35,7 +35,7 @@ class BasicFixture : public celero::TestFixture {
   }
 };
 
-BASELINE_F(Regularization, Baseline, BasicFixture, 100, 0) {
+BASELINE_F(Regularization, Baseline, BasicFixture, 10000, 0) {
   cpz::ConstrainedPolynomialZonotope<> z(
   center, generators, exponents, constraints, constraint_generators, constraint_exponents);
 }
