@@ -71,6 +71,27 @@ namespace {
     }
   }
 
+  template <typename Derived> auto unique_columns(const Eigen::MatrixBase<Derived>& exponents) {
+    std::vector<std::vector<unsigned int>> column_groups;
+    std::vector<unsigned int> unique_indices = {0};
+    int curr_col                             = 0;
+    std::vector<unsigned int> curr_group     = {0};
+    const unsigned int num_cols              = exponents.cols();
+    for (unsigned int i = 1; i < num_cols; ++i) {
+      if (exponents.col(curr_col) != exponents.col(i)) {
+        column_groups.push_back(curr_group);
+        unique_indices.push_back(i);
+        curr_group.clear();
+        curr_col = i;
+      }
+
+      curr_group.push_back(i);
+    }
+
+    column_groups.push_back(curr_group);
+    return std::make_pair(column_groups, exponents(Eigen::all, unique_indices));
+  }
+
   template <typename D1, typename D2>
   void regularize(Eigen::MatrixBase<D1>& exponents, Eigen::MatrixBase<D2>& generators) {}
   template <typename D1, typename D2>
