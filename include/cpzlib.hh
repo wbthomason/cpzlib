@@ -146,8 +146,16 @@ namespace {
 }  // namespace
 
 template <typename F = float> struct ConstrainedPolynomialZonotope {
+ protected:
+  inline void regularize_cpz() noexcept {
+    ensure_regular(this->exponents, this->generators);
+    ensure_regular(this->constraint_exponents, this->constraint_generators);
+  }
+
   using Vector = Eigen::Matrix<F, Eigen::Dynamic, 1>;
   using Matrix = Eigen::Matrix<F, Eigen::Dynamic, Eigen::Dynamic>;
+
+ public:
   Vector center;
   Matrix generators;
   Matrix exponents;
@@ -167,8 +175,7 @@ template <typename F = float> struct ConstrainedPolynomialZonotope {
   , constraints(constraints)
   , constraint_generators(constraint_generators)
   , constraint_exponents(constraint_exponents) {
-    ensure_regular(this->exponents, this->generators);
-    ensure_regular(this->constraint_exponents, this->constraint_generators);
+    regularize_cpz();
   }
 
   ConstrainedPolynomialZonotope(const Vector&& center,
@@ -183,8 +190,7 @@ template <typename F = float> struct ConstrainedPolynomialZonotope {
   , constraints(constraints)
   , constraint_generators(constraint_generators)
   , constraint_exponents(constraint_exponents) {
-    ensure_regular(this->exponents, this->generators);
-    ensure_regular(this->constraint_exponents, this->constraint_generators);
+    regularize_cpz();
   }
 
   ConstrainedPolynomialZonotope(ConstrainedPolynomialZonotope&& o) = default;
