@@ -1,11 +1,8 @@
 #pragma once
 #include <pdqsort.h>
-#include <robin_hood.h>
 
 #include <Eigen/Core>
-#include <functional>
 #include <numeric>
-#include <type_traits>
 
 namespace cpz {
 namespace {
