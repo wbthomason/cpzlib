@@ -40,7 +40,34 @@ namespace {
     }
   }
 
+  template <typename Derived>
+  void permute_cols(Eigen::MatrixBase<Derived>& mat, std::vector<int>& permutation) {
+    const unsigned int num_cols  = mat.cols();
+    const unsigned int num_rows  = mat.rows();
+    unsigned int idx             = 0;
+    unsigned int swap_start      = -1;
+    unsigned int count           = 0;
+    unsigned int permutation_idx = -1;
+    while (count < num_cols) {
+      // Find the start point of the next chain of swaps
+      ++swap_start;
+      while (swap_start < num_cols && permutation[swap_start] < 0) {
+        ++swap_start;
       }
+
+      // Follow the chain of swaps
+      idx             = swap_start;
+      permutation_idx = permutation[swap_start];
+      ++count;
+      while (permutation_idx != swap_start) {
+        swap_columns(mat, idx, permutation_idx, num_rows);
+        permutation[idx] = -1;
+        idx              = permutation_idx;
+        permutation_idx  = permutation[permutation_idx];
+        ++count;
+      }
+
+      permutation[idx] = -1;
     }
   }
 
