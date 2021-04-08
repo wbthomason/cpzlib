@@ -108,26 +108,39 @@ namespace {
   template <typename D1, typename D2>
   void ensure_regular(Eigen::MatrixBase<D1>& exponents, Eigen::MatrixBase<D2>& generators) {
     // First, sort the exponents and generators according to the exponents
-    std::vector<int> permutation;
-    const auto num_cols = exponents.cols();
-    permutation.reserve(num_cols);
-    std::iota(permutation.begin(), permutation.end() + num_cols, 0);
-    pdqsort(permutation.begin(),
-            permutation.end(),
-            [&exponents](const auto& i, const auto& j) -> bool {
-              return exponents.col(i) < exponents.col(j);
-            });
-
-
-    std::vector<int> inverse_permutation(num_cols);
-    for (int i = 0; i < num_cols; ++i) {
-      inverse_permutation[permutation[i]] = i;
+    const unsigned int num_cols = exponents.cols();
+    const unsigned int num_rows = exponents.rows();
+    if (num_cols == 0 || num_rows == 0) {
+      return;
     }
 
-    permute_cols(exponents, permutation, inverse_permutation);
-    permute_cols(generators, permutation, inverse_permutation);
+    std::vector<int> permutation(num_cols);
+    std::iota(permutation.begin(), permutation.end(), 0);
+    pdqsort(permutation.begin(),
+            permutation.end(),
+            [&exponents, num_rows](const int i, const int j) -> bool {
+              const auto col_a = exponents.col(i);
+              const auto col_b = exponents.col(j);
+              for (unsigned int i = 0; i < num_rows; ++i) {
+                const auto val_a = col_a[i];
+                const auto val_b = col_b[i];
+                if (val_a != val_b) {
+                  return val_a < val_b;
+                }
+              }
+
+              return false;
+            });
+
+    // Then, apply the permutation in-place to sort the matrices
+    // Because permute_cols modifies the permutation vector, we make a copy
+    std::vector<int> permutation_copy(permutation);
+    permute_cols(exponents, permutation_copy);
+    permute_cols(generators, permutation);
+
+    // Finally, check if the exponents matrix is regular and apply regularization if it is not
     if (!is_regular(exponents)) {
-      regularize(exponents, generators);
+      std::tie(exponents, generators) = regularize(exponents, generators);
     }
   }
 }  // namespace
