@@ -93,7 +93,18 @@ namespace {
   }
 
   template <typename D1, typename D2>
-  void regularize(Eigen::MatrixBase<D1>& exponents, Eigen::MatrixBase<D2>& generators) {}
+  auto
+  regularize(const Eigen::MatrixBase<D1>& exponents, const Eigen::MatrixBase<D2>& generators) {
+    const auto [column_groups, new_exponents] = unique_columns(exponents);
+    const unsigned int num_groups             = column_groups.size();
+    D2 new_generators(generators.rows(), num_groups);
+    for (unsigned int i = 0; i < num_groups; ++i) {
+      new_generators.col(i).noalias() = generators(Eigen::all, column_groups[i]).rowwise().sum();
+    }
+
+    return std::make_pair(new_exponents, new_generators);
+  }
+
   template <typename D1, typename D2>
   void ensure_regular(Eigen::MatrixBase<D1>& exponents, Eigen::MatrixBase<D2>& generators) {
     // First, sort the exponents and generators according to the exponents
