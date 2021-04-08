@@ -26,20 +26,20 @@ namespace {
   }
 
   template <typename Derived>
-  void permute_cols(Eigen::MatrixBase<Derived>& mat,
-                    const std::vector<int>& permutation,
-                    const std::vector<int>& inverse_permutation) {
-    const auto num_cols  = mat.cols();
-    auto placeholder_col = mat.col(0);
-    int idx              = 0;
-    int last_unswapped   = 0;
-    while (last_unswapped < num_cols) {
-      const auto permutation_idx = permutation[idx];
-      if (permutation_idx != idx) {
-        placeholder_col = mat.col(idx);
-        mat.col(idx)    = mat.col(permutation_idx);
-      } else {
-        ++last_unswapped;
+  void swap_columns(Eigen::MatrixBase<Derived>& mat,
+                    const int a,
+                    const int b,
+                    const unsigned int rows) {
+    auto col_a = mat.col(a).data();
+    auto col_b = mat.col(b).data();
+    typename Eigen::MatrixBase<Derived>::Scalar temp;
+    for (unsigned int i = 0; i < rows; ++i) {
+      temp     = col_a[i];
+      col_a[i] = col_b[i];
+      col_b[i] = temp;
+    }
+  }
+
       }
     }
   }
