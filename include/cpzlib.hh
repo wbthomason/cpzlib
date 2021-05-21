@@ -126,30 +126,37 @@ namespace {
   }
 }  // namespace
 
-template <typename F = float> struct ConstrainedPolynomialZonotope {
+template <typename F                  = float,
+          int Dims                    = Eigen::Dynamic,
+          int NumGenerators           = Eigen::Dynamic,
+          int NumFactors              = Eigen::Dynamic,
+          int NumConstraints          = Eigen::Dynamic,
+          int NumConstraintGenerators = Eigen::Dynamic>
+struct ConstrainedPolynomialZonotope {
  protected:
   inline void regularize_cpz() noexcept {
     ensure_regular(this->exponents, this->generators);
     ensure_regular(this->constraint_exponents, this->constraint_generators);
   }
 
-  using Vector = Eigen::Matrix<F, Eigen::Dynamic, 1>;
-  using Matrix = Eigen::Matrix<F, Eigen::Dynamic, Eigen::Dynamic>;
+  template <int Size> using Vector     = Eigen::Matrix<F, Size, 1>;
+  template <int R, int C> using Matrix = Eigen::Matrix<F, R, C>;
 
  public:
-  Vector center;
-  Matrix generators;
-  Matrix exponents;
-  Vector constraints;
-  Matrix constraint_generators;
-  Matrix constraint_exponents;
+  Vector<Dims> center;
+  Matrix<Dims, NumGenerators> generators;
+  Matrix<NumFactors, NumGenerators> exponents;
+  Vector<NumConstraints> constraints;
+  Matrix<NumConstraints, NumConstraintGenerators> constraint_generators;
+  Matrix<NumFactors, NumConstraintGenerators> constraint_exponents;
 
-  ConstrainedPolynomialZonotope(const Vector& center,
-                                const Matrix& generators,
-                                const Matrix& exponents,
-                                const Vector& constraints,
-                                const Matrix& constraint_generators,
-                                const Matrix& constraint_exponents)
+  ConstrainedPolynomialZonotope(
+  const Vector<Dims>& center,
+  const Matrix<Dims, NumGenerators>& generators,
+  const Matrix<NumFactors, NumGenerators>& exponents,
+  const Vector<NumConstraints>& constraints,
+  const Matrix<NumConstraints, NumConstraintGenerators>& constraint_generators,
+  const Matrix<NumFactors, NumConstraintGenerators>& constraint_exponents)
   : center(center)
   , generators(generators)
   , exponents(exponents)
@@ -159,12 +166,13 @@ template <typename F = float> struct ConstrainedPolynomialZonotope {
     regularize_cpz();
   }
 
-  ConstrainedPolynomialZonotope(const Vector&& center,
-                                const Matrix&& generators,
-                                const Matrix&& exponents,
-                                const Vector&& constraints,
-                                const Matrix&& constraint_generators,
-                                const Matrix&& constraint_exponents)
+  ConstrainedPolynomialZonotope(
+  const Vector<Dims>&& center,
+  const Matrix<Dims, NumGenerators>&& generators,
+  const Matrix<NumFactors, NumGenerators>&& exponents,
+  const Vector<NumConstraints>&& constraints,
+  const Matrix<NumConstraints, NumConstraintGenerators>&& constraint_generators,
+  const Matrix<NumFactors, NumConstraintGenerators>&& constraint_exponents)
   : center(center)
   , generators(generators)
   , exponents(exponents)
@@ -173,7 +181,5 @@ template <typename F = float> struct ConstrainedPolynomialZonotope {
   , constraint_exponents(constraint_exponents) {
     regularize_cpz();
   }
-
-  ConstrainedPolynomialZonotope(ConstrainedPolynomialZonotope&& o) = default;
 };
 }  // namespace cpz
