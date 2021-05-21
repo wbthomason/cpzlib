@@ -24,11 +24,11 @@ namespace {
 
   template <typename Derived>
   void permute_cols(Eigen::MatrixBase<Derived>& mat, std::vector<int>& permutation) {
-    const unsigned int num_cols  = mat.cols();
-    unsigned int idx             = 0;
-    unsigned int swap_start      = -1;
-    unsigned int count           = 0;
-    unsigned int permutation_idx = -1;
+    const unsigned int num_cols = mat.cols();
+    unsigned int idx            = 0;
+    int swap_start              = -1;
+    unsigned int count          = 0;
+    int permutation_idx         = -1;
     while (count < num_cols) {
       // Find the start point of the next chain of swaps
       ++swap_start;
